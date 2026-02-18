@@ -4,22 +4,207 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Ramadan Tracker 2026</title>
-    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- CSS GABUNGAN (LANGSUNG DI SINI) --- */
+        :root {
+            --bg-dark: #021a15;
+            --primary: #00d285;
+            --accent: #ffc800;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --text: #ffffff;
+            --text-dim: #8fa39e;
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            margin: 0; padding: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .glow-bg {
+            position: fixed; top: -20%; left: -20%; width: 140%; height: 140%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 210, 133, 0.15), transparent 60%);
+            z-index: 0; pointer-events: none;
+        }
+
+        .app-container {
+            width: 100%; 
+            max-width: 450px; /* HP Mode */
+            height: 100%; 
+            background: rgba(2, 26, 21, 0.8);
+            position: relative; 
+            z-index: 1;
+            display: flex; 
+            flex-direction: column;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+        }
+
+        .main-header { padding: 25px 20px 10px; text-align: center; flex-shrink: 0; }
+        .location-pill {
+            display: inline-flex; align-items: center; gap: 5px;
+            background: rgba(0, 210, 133, 0.1); color: var(--primary);
+            padding: 4px 12px; border-radius: 20px;
+            font-size: 0.75rem; font-weight: 600; letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        h1 { font-size: 1.5rem; font-weight: 700; margin: 0; letter-spacing: -0.5px; }
+
+        .view-section { 
+            flex: 1; 
+            overflow-y: auto; 
+            padding: 20px; 
+            padding-bottom: 100px; /* Ruang buat Nav Bawah */
+            display: none; 
+            opacity: 0; 
+            transition: opacity 0.3s;
+            scrollbar-width: none; 
+        }
+        .view-section::-webkit-scrollbar { display: none; }
+        .view-section.active { display: block; opacity: 1; }
+
+        /* TIMER */
+        .timer-card { display: flex; justify-content: center; margin-bottom: 25px; }
+        .timer-wrapper { position: relative; width: 220px; height: 220px; }
+        .progress-ring { transform: rotate(-90deg); }
+        .progress-ring__bg { stroke: rgba(255,255,255,0.05); }
+        .progress-ring__circle {
+            stroke: var(--primary); stroke-linecap: round;
+            transition: stroke-dashoffset 0.5s ease;
+            filter: drop-shadow(0 0 8px rgba(0, 210, 133, 0.5));
+        }
+        .timer-content {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            padding: 15px;
+        }
+        #timerLabel {
+            font-size: 0.65rem; letter-spacing: 1px; color: var(--text-dim);
+            margin-bottom: 5px; text-align: center;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;
+        }
+        .time-digit { 
+            font-size: 2.3rem; font-weight: 700; line-height: 1.2; 
+            letter-spacing: -1px; font-variant-numeric: tabular-nums; 
+            text-shadow: 0 0 15px rgba(0, 210, 133, 0.3);
+        }
+        .target-badge {
+            margin-top: 5px; font-size: 0.75rem;
+            background: rgba(255,255,255,0.1); padding: 4px 12px; 
+            border-radius: 20px; color: var(--text-dim);
+        }
+
+        /* STATUS & CARDS */
+        .status-glass {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.08));
+            border: 1px solid var(--glass-border);
+            padding: 12px; border-radius: 16px;
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 20px;
+        }
+        .status-icon {
+            width: 32px; height: 32px; background: var(--primary); color: #000;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 0.9rem; flex-shrink: 0;
+        }
+        #statusText { font-size: 0.85rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+        .grid-container { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .glass-card {
+            background: var(--glass); border: 1px solid var(--glass-border);
+            border-radius: 18px; padding: 15px;
+            display: flex; align-items: center; gap: 12px; transition: all 0.2s;
+        }
+        .glass-card.full { grid-column: span 2; }
+        .glass-card.highlight {
+            background: linear-gradient(135deg, rgba(255, 200, 0, 0.15), rgba(255, 200, 0, 0.05));
+            border-color: rgba(255, 200, 0, 0.3);
+        }
+        .card-icon { width: 40px; height: 40px; background: rgba(0,0,0,0.2); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; color: var(--text-dim); flex-shrink: 0;}
+        .card-icon-lg { width: 50px; height: 50px; background: rgba(255, 200, 0, 0.1); border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: var(--accent); flex-shrink: 0;}
+        .card-content-row { display: flex; align-items: center; gap: 15px; }
+        .card-info small, .card-text-group small { display: block; font-size: 0.7rem; color: var(--text-dim); }
+        .card-info strong { font-size: 1.1rem; }
+        .card-text-group strong { font-size: 1.4rem; color: var(--accent); }
+        
+        .glass-card.active { border-color: var(--primary); background: rgba(0, 210, 133, 0.1); box-shadow: 0 0 20px rgba(0, 210, 133, 0.1); }
+        .glass-card.active .card-icon { color: var(--primary); background: rgba(0, 210, 133, 0.2); }
+        .mini-quote { text-align: center; margin-top: 25px; padding: 0 10px; font-style: italic; color: var(--text-dim); font-size: 0.85rem; }
+
+        /* NAV BAWAH (FIXED) */
+        .glass-nav {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 400px;
+            background: rgba(20, 30, 30, 0.95); backdrop-filter: blur(15px);
+            border: 1px solid var(--glass-border); border-radius: 25px; height: 65px;
+            display: flex; justify-content: space-around; align-items: center;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.6); z-index: 999;
+        }
+        .nav-btn { background: none; border: none; color: var(--text-dim); font-size: 1.4rem; padding: 10px 20px; transition: 0.2s; }
+        .nav-btn.active { color: var(--primary); transform: translateY(-3px); text-shadow: 0 0 10px rgba(0,210,133,0.4); }
+
+        /* TARGET & QURAN */
+        .target-wrapper h2 { text-align: center; margin-bottom: 20px; }
+        .progress-bar-container { width: 100%; height: 20px; background: rgba(255,255,255,0.1); border-radius: 20px; margin-bottom: 30px; overflow: hidden; border: 1px solid var(--glass-border); }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), #00b894); width: 0%; transition: width 0.5s; font-size: 0.7rem; color: #000; font-weight: bold; display: flex; align-items: center; justify-content: center; }
+        .checklist-group { display: flex; flex-direction: column; gap: 12px; }
+        .custom-checkbox { display: flex; align-items: center; gap: 15px; background: var(--glass); border: 1px solid var(--glass-border); padding: 15px; border-radius: 16px; cursor: pointer; transition: 0.2s; }
+        .custom-checkbox:active { transform: scale(0.98); }
+        .custom-checkbox input { display: none; }
+        .checkmark { width: 24px; height: 24px; border-radius: 8px; border: 2px solid var(--text-dim); display: flex; align-items: center; justify-content: center; color: transparent; flex-shrink: 0;}
+        .label-text strong { display: block; font-size: 0.95rem; } .label-text small { font-size: 0.75rem; color: var(--text-dim); }
+        .custom-checkbox input:checked ~ .checkmark { background: var(--primary); border-color: var(--primary); color: #000; }
+        .custom-checkbox input:checked ~ .label-text strong { color: var(--primary); text-decoration: line-through; }
+
+        .quran-section { margin-top: 30px; background: rgba(0,0,0,0.2); padding: 20px; border-radius: 16px; border: 1px solid var(--glass-border); }
+        .quran-section h3 { text-align: center; font-size: 1rem; margin-bottom: 5px; }
+        .quran-progress-text { text-align: center; font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px; }
+        .quran-progress-text span { color: var(--accent); font-weight: bold; }
+        .quran-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
+        .juz-box { aspect-ratio: 1/1; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; color: var(--text-dim); cursor: pointer; }
+        .juz-box.done { background: var(--primary); color: #000; border-color: var(--primary); box-shadow: 0 0 10px rgba(0, 210, 133, 0.4); }
+        
+        .btn-reset-target { width: 100%; padding: 15px; margin-top: 30px; background: rgba(255, 50, 50, 0.1); border: 1px solid rgba(255, 50, 50, 0.3); color: #ff6b6b; border-radius: 12px; font-weight: 600; cursor: pointer; }
+
+        /* TASBIH & INFO */
+        .tasbih-wrapper { text-align: center; padding-top: 20px; }
+        .count-circle { font-size: 5rem; font-weight: 700; color: var(--primary); text-shadow: 0 0 30px rgba(0,210,133,0.3); margin: 30px 0; }
+        .tap-area { width: 140px; height: 140px; border-radius: 50%; border: none; background: radial-gradient(circle, var(--primary), #009660); color: #000; font-weight: 700; font-size: 1.2rem; box-shadow: 0 10px 30px rgba(0,210,133,0.3); margin-bottom: 30px; }
+        .tap-area:active { transform: scale(0.95); }
+        .tasbih-actions { display: flex; justify-content: center; gap: 20px; }
+        .btn-glass { width: 50px; height: 50px; border-radius: 50%; border: 1px solid var(--glass-border); background: var(--glass); color: var(--text); font-size: 1.1rem; }
+        .info-list { padding-bottom: 100px; } .info-list h2 { margin-bottom: 20px; }
+        .btn-action { width: 100%; padding: 15px; margin-top: 15px; background: transparent; border: 1px solid var(--primary); color: var(--primary); border-radius: 12px; font-weight: 600; }
+
+        /* MODAL */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: none; align-items: center; justify-content: center; }
+        .modal-box { background: #101815; border: 1px solid var(--accent); padding: 40px; border-radius: 20px; text-align: center; position: relative; width: 80%; }
+        .modal-box i { font-size: 3rem; color: var(--accent); margin-bottom: 15px; }
+        .modal-box button { margin-top: 20px; padding: 10px 30px; background: var(--accent); border: none; border-radius: 20px; font-weight: 700; }
+        .anim-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 100px; border-radius: 50%; border: 2px solid var(--accent); animation: ripple 1.5s infinite; }
+        @keyframes ripple { 0% { width: 0; height: 0; opacity: 1; } 100% { width: 300px; height: 300px; opacity: 0; } }
+    </style>
 </head>
 <body>
 
     <audio id="adzanAudio" src="https://www.islamcan.com/audio/adhan/azan1.mp3" preload="auto"></audio>
-
     <div class="glow-bg"></div>
 
     <div class="app-container">
-        
         <header class="main-header">
-            <div class="location-pill">
-                <i class="fas fa-map-marker-alt"></i> Surabaya
-            </div>
+            <div class="location-pill"><i class="fas fa-map-marker-alt"></i> Surabaya</div>
             <h1 id="headerTitle">Ramadan 1447 H</h1>
         </header>
 
@@ -37,122 +222,74 @@
                     </div>
                 </div>
             </div>
-
             <div class="status-glass" id="statusBanner">
                 <div class="status-icon"><i class="fas fa-hourglass-half"></i></div>
                 <span id="statusText">Menunggu Waktu...</span>
             </div>
-
             <div class="grid-container">
                 <div class="glass-card" id="card-imsak">
                     <div class="card-icon"><i class="fas fa-moon"></i></div>
-                    <div class="card-info">
-                        <small>Imsak</small>
-                        <strong id="time-imsak">--:--</strong>
-                    </div>
+                    <div class="card-info"><small>Imsak</small><strong id="time-imsak">--:--</strong></div>
                 </div>
                 <div class="glass-card" id="card-subuh">
                     <div class="card-icon"><i class="fas fa-cloud-sun"></i></div>
-                    <div class="card-info">
-                        <small>Subuh</small>
-                        <strong id="time-subuh">--:--</strong>
-                    </div>
+                    <div class="card-info"><small>Subuh</small><strong id="time-subuh">--:--</strong></div>
                 </div>
                 <div class="glass-card full highlight" id="card-magrib">
                     <div class="card-content-row">
                         <div class="card-icon-lg"><i class="fas fa-utensils"></i></div>
-                        <div class="card-text-group">
-                            <small>Magrib (Berbuka)</small>
-                            <strong id="time-magrib">--:--</strong>
-                        </div>
+                        <div class="card-text-group"><small>Magrib (Berbuka)</small><strong id="time-magrib">--:--</strong></div>
                     </div>
                 </div>
             </div>
-
-            <div class="mini-quote">
-                <p id="quoteText">"..."</p>
-            </div>
-            
-            <div style="height: 100px;"></div>
+            <div class="mini-quote"><p id="quoteText">"..."</p></div>
         </main>
 
         <main id="view-target" class="view-section">
             <div class="target-wrapper">
                 <h2>Target Hari Ini</h2>
-                
-                <div class="progress-bar-container">
-                    <div class="progress-fill" id="dailyProgress" style="width: 0%">0%</div>
-                </div>
-                
+                <div class="progress-bar-container"><div class="progress-fill" id="dailyProgress" style="width: 0%">0%</div></div>
                 <div class="checklist-group">
                     <label class="custom-checkbox">
                         <input type="checkbox" onchange="updateChecklist(this)" id="check-puasa">
                         <span class="checkmark"><i class="fas fa-check"></i></span>
-                        <div class="label-text">
-                            <strong>Puasa Penuh</strong>
-                            <small>Fajar - Magrib</small>
-                        </div>
+                        <div class="label-text"><strong>Puasa Penuh</strong><small>Fajar - Magrib</small></div>
                     </label>
                     <label class="custom-checkbox">
                         <input type="checkbox" onchange="updateChecklist(this)" id="check-tarawih">
                         <span class="checkmark"><i class="fas fa-check"></i></span>
-                        <div class="label-text">
-                            <strong>Sholat Tarawih</strong>
-                            <small>Hidupkan malam</small>
-                        </div>
+                        <div class="label-text"><strong>Sholat Tarawih</strong><small>Hidupkan malam</small></div>
                     </label>
                     <label class="custom-checkbox">
                         <input type="checkbox" onchange="updateChecklist(this)" id="check-tadarus">
                         <span class="checkmark"><i class="fas fa-check"></i></span>
-                        <div class="label-text">
-                            <strong>Tadarus (Baca Quran)</strong>
-                            <small>Min. 1 halaman</small>
-                        </div>
+                        <div class="label-text"><strong>Tadarus Quran</strong><small>Min. 1 halaman</small></div>
                     </label>
                     <label class="custom-checkbox">
                         <input type="checkbox" onchange="updateChecklist(this)" id="check-sedekah">
                         <span class="checkmark"><i class="fas fa-check"></i></span>
-                        <div class="label-text">
-                            <strong>Sedekah</strong>
-                            <small>Berbagi rezeki</small>
-                        </div>
+                        <div class="label-text"><strong>Sedekah</strong><small>Berbagi rezeki</small></div>
                     </label>
                     <label class="custom-checkbox">
                         <input type="checkbox" onchange="updateChecklist(this)" id="check-lima-waktu">
                         <span class="checkmark"><i class="fas fa-check"></i></span>
-                        <div class="label-text">
-                            <strong>Sholat 5 Waktu</strong>
-                            <small>Tepat waktu</small>
-                        </div>
+                        <div class="label-text"><strong>Sholat 5 Waktu</strong><small>Tepat waktu</small></div>
                     </label>
                 </div> 
-
                 <div class="quran-section">
                     <h3>Tracker Khatam Quran</h3>
-                    <div class="quran-progress-text">
-                        Selesai: <span id="quranPercent">0%</span> (Juz <span id="quranCount">0</span>/30)
-                    </div>
-                    <div class="quran-grid" id="quranGrid">
-                        </div>
+                    <div class="quran-progress-text">Selesai: <span id="quranPercent">0%</span> (Juz <span id="quranCount">0</span>/30)</div>
+                    <div class="quran-grid" id="quranGrid"></div>
                 </div>
-
-                <button class="btn-reset-target" onclick="resetChecklist()">
-                    <i class="fas fa-redo"></i> Reset Hari Baru
-                </button>
-                
-                <div style="height: 100px;"></div>
+                <button class="btn-reset-target" onclick="resetChecklist()"><i class="fas fa-redo"></i> Reset Hari Baru</button>
             </div>
         </main>
 
         <main id="view-tasbih" class="view-section">
             <div class="tasbih-wrapper">
                 <h2>Tasbih Digital</h2>
-                <div class="count-circle">
-                    <span id="tasbihCounter">0</span>
-                </div>
-                <button class="tap-area" onclick="hitTasbih()">
-                    <i class="fas fa-fingerprint"></i> TAP
-                </button>
+                <div class="count-circle"><span id="tasbihCounter">0</span></div>
+                <button class="tap-area" onclick="hitTasbih()"><i class="fas fa-fingerprint"></i> TAP</button>
                 <div class="tasbih-actions">
                     <button class="btn-glass" onclick="resetTasbih()"><i class="fas fa-undo"></i></button>
                     <button class="btn-glass" onclick="saveTasbih()"><i class="fas fa-save"></i></button>
@@ -163,33 +300,18 @@
         <main id="view-info" class="view-section">
             <div class="info-list">
                 <h2>Info Aplikasi</h2>
-                <div class="glass-card full">
-                    <small>Sumber Data</small>
-                    <strong>Kemenag Jatim 2026</strong>
-                </div>
-                <div class="glass-card full">
-                    <small>Lokasi</small>
-                    <strong>Kota Surabaya</strong>
-                </div>
+                <div class="glass-card full"><small>Sumber Data</small><strong>Kemenag Jatim 2026</strong></div>
+                <div class="glass-card full"><small>Lokasi</small><strong>Kota Surabaya</strong></div>
                 <button class="btn-action" onclick="testAdzan()">Test Audio Adzan</button>
             </div>
         </main>
 
         <nav class="glass-nav">
-            <button class="nav-btn active" onclick="switchTab('home', this)">
-                <i class="fas fa-home"></i>
-            </button>
-            <button class="nav-btn" onclick="switchTab('target', this)">
-                <i class="fas fa-list-check"></i>
-            </button>
-            <button class="nav-btn" onclick="switchTab('tasbih', this)">
-                <i class="fas fa-kaaba"></i>
-            </button>
-            <button class="nav-btn" onclick="switchTab('info', this)">
-                <i class="fas fa-cog"></i>
-            </button>
+            <button class="nav-btn active" onclick="switchTab('home', this)"><i class="fas fa-home"></i></button>
+            <button class="nav-btn" onclick="switchTab('target', this)"><i class="fas fa-list-check"></i></button>
+            <button class="nav-btn" onclick="switchTab('tasbih', this)"><i class="fas fa-kaaba"></i></button>
+            <button class="nav-btn" onclick="switchTab('info', this)"><i class="fas fa-cog"></i></button>
         </nav>
-
     </div>
 
     <div id="adzanModal" class="modal-overlay">
@@ -202,6 +324,189 @@
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // --- JAVASCRIPT GABUNGAN ---
+        const scheduleData = [
+            { d: 19, m: 2, im:"04:12", su:"04:22", mg:"18:03" }, { d: 20, m: 2, im:"04:12", su:"04:22", mg:"18:03" },
+            { d: 21, m: 2, im:"04:13", su:"04:23", mg:"18:02" }, { d: 22, m: 2, im:"04:13", su:"04:23", mg:"18:02" },
+            { d: 23, m: 2, im:"04:13", su:"04:23", mg:"18:01" }, { d: 24, m: 2, im:"04:13", su:"04:23", mg:"18:01" },
+            { d: 25, m: 2, im:"04:13", su:"04:23", mg:"18:01" }, { d: 26, m: 2, im:"04:14", su:"04:24", mg:"18:00" },
+            { d: 27, m: 2, im:"04:14", su:"04:24", mg:"18:00" }, { d: 28, m: 2, im:"04:14", su:"04:24", mg:"18:00" },
+            { d: 1,  m: 3, im:"04:14", su:"04:24", mg:"17:59" }, { d: 2,  m: 3, im:"04:14", su:"04:24", mg:"17:59" },
+            { d: 3,  m: 3, im:"04:14", su:"04:24", mg:"17:58" }, { d: 4,  m: 3, im:"04:14", su:"04:24", mg:"17:58" },
+            { d: 5,  m: 3, im:"04:14", su:"04:24", mg:"17:57" }, { d: 6,  m: 3, im:"04:14", su:"04:24", mg:"17:57" },
+            { d: 7,  m: 3, im:"04:14", su:"04:24", mg:"17:56" }, { d: 8,  m: 3, im:"04:14", su:"04:24", mg:"17:56" },
+            { d: 9,  m: 3, im:"04:14", su:"04:24", mg:"17:55" }, { d: 10, m: 3, im:"04:14", su:"04:24", mg:"17:55" },
+            { d: 11, m: 3, im:"04:15", su:"04:25", mg:"17:54" }, { d: 12, m: 3, im:"04:15", su:"04:25", mg:"17:54" },
+            { d: 13, m: 3, im:"04:15", su:"04:25", mg:"17:53" }, { d: 14, m: 3, im:"04:15", su:"04:25", mg:"17:53" },
+            { d: 15, m: 3, im:"04:15", su:"04:25", mg:"17:52" }, { d: 16, m: 3, im:"04:15", su:"04:25", mg:"17:52" },
+            { d: 17, m: 3, im:"04:15", su:"04:25", mg:"17:52" }, { d: 18, m: 3, im:"04:15", su:"04:25", mg:"17:51" },
+            { d: 19, m: 3, im:"04:15", su:"04:25", mg:"17:50" }, { d: 20, m: 3, im:"04:15", su:"04:25", mg:"17:50" }
+        ];
+
+        const quotes = [
+            "Puasa adalah perisai dari api neraka.", "Bulan penuh berkah, saatnya panen pahala.",
+            "Jadikan Ramadan ini lebih baik dari sebelumnya.", "Sabar itu separuh dari iman.",
+            "Berbukalah dengan yang manis, dan jangan lupa berdoa."
+        ];
+
+        const circle = document.getElementById('progressCircle');
+        const radius = circle.r.baseVal.value;
+        const circumference = radius * 2 * Math.PI;
+        circle.style.strokeDasharray = `${circumference} ${circumference}`;
+        circle.style.strokeDashoffset = circumference;
+        let tasbihCount = localStorage.getItem('tasbih') || 0;
+        document.getElementById('tasbihCounter').innerText = tasbihCount;
+        let adzanPlayedToday = false; 
+
+        function runSystem() {
+            const now = new Date();
+            const d = now.getDate();
+            const m = now.getMonth() + 1;
+            let today = scheduleData.find(x => x.d === d && x.m === m);
+            let isPreRamadan = false;
+            if (!today && m === 2 && d < 19) { today = scheduleData[0]; isPreRamadan = true; }
+            if (!today) {
+                document.getElementById('statusText').innerText = "Idul Fitri / Data Selesai";
+                document.getElementById('mainTimer').innerText = "00:00:00";
+                return;
+            }
+            document.getElementById('headerTitle').innerText = isPreRamadan ? "Persiapan Ramadan" : `${d} ${m===2?'Februari':'Maret'} 2026`;
+            document.getElementById('time-imsak').innerText = today.im;
+            document.getElementById('time-subuh').innerText = today.su;
+            document.getElementById('time-magrib').innerText = today.mg;
+
+            const year = 2026; 
+            const tIm = makeDate(year, today.m, today.d, today.im);
+            const tSu = makeDate(year, today.m, today.d, today.su);
+            const tMg = makeDate(year, today.m, today.d, today.mg);
+            let target, label, start, end, phase;
+
+            document.querySelectorAll('.glass-card').forEach(c => c.classList.remove('active'));
+
+            if (isPreRamadan) {
+                target = tIm; label = "MENUJU SAHUR PERTAMA"; phase = "PRE_RAMADAN";
+                start = new Date(); end = tIm; document.getElementById('card-imsak').classList.add('active');
+            } else {
+                if (now < tIm) {
+                    target = tIm; label = "MENUJU WAKTU IMSAK"; phase = "SAHUR";
+                    start = new Date(tIm); start.setHours(start.getHours() - 4); end = tIm; document.getElementById('card-imsak').classList.add('active');
+                } else if (now < tSu) {
+                    target = tSu; label = "STOP MAKAN (IMSAK)"; phase = "IMSAK";
+                    start = tIm; end = tSu; document.getElementById('card-subuh').classList.add('active');
+                } else if (now < tMg) {
+                    target = tMg; label = "MENUJU WAKTU BERBUKA"; phase = "PUASA";
+                    start = tSu; end = tMg; document.getElementById('card-magrib').classList.add('active');
+                } else {
+                    label = "SUDAH BERBUKA"; phase = "BUKA";
+                    const idx = scheduleData.indexOf(today);
+                    let nextData = scheduleData[idx + 1]; if (!nextData) nextData = today; 
+                    target = makeDate(year, nextData.m, nextData.d, nextData.im);
+                    if (target < now) target.setDate(target.getDate() + 1);
+                    start = tMg; end = target;
+                }
+            }
+
+            updateStatusText(phase);
+            updateTimer(now, target, label);
+            updateProgress(now, start, end, phase);
+
+            if (phase === 'BUKA' && !adzanPlayedToday) {
+                const diff = now - tMg;
+                if (diff >= 0 && diff < 60000) { playAdzan(); adzanPlayedToday = true; }
+            }
+            if (now.getHours() === 0 && now.getMinutes() === 0 && now.getSeconds() < 5) adzanPlayedToday = false;
+        }
+
+        function updateStatusText(phase) {
+            const el = document.getElementById('statusText');
+            const ic = document.querySelector('.status-icon');
+            if (phase === 'PRE_RAMADAN') { el.innerText = "Persiapan Sahur Pertama"; ic.style.background = "#00d285"; }
+            else if(phase === 'SAHUR') { el.innerText = "Waktunya Makan Sahur"; ic.style.background = "#00d285"; }
+            else if(phase === 'IMSAK') { el.innerText = "Tahan! Sudah Imsak"; ic.style.background = "#ffc800"; }
+            else if(phase === 'PUASA') { el.innerText = "Selamat Berpuasa"; ic.style.background = "#00d285"; }
+            else if(phase === 'BUKA') { el.innerText = "Alhamdulillah Berbuka"; ic.style.background = "#ffc800"; }
+        }
+
+        function updateTimer(now, target, label) {
+            let diff = target - now;
+            if (isNaN(diff) || diff < 0) diff = 0;
+            const h = Math.floor(diff / (1000 * 60 * 60));
+            const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((diff % (1000 * 60)) / 1000);
+            document.getElementById('mainTimer').innerText = `${pad(h)}:${pad(m)}:${pad(s)}`;
+            document.getElementById('timerLabel').innerText = label;
+            const tH = target.getHours(); const tM = target.getMinutes();
+            const showH = isNaN(tH) ? '--' : pad(tH); const showM = isNaN(tM) ? '--' : pad(tM);
+            document.getElementById('targetTime').innerText = `Target: ${showH}:${showM}`;
+        }
+
+        function updateProgress(now, start, end, phase) {
+            const total = end - start; const current = now - start;
+            let pct = (current / total) * 100;
+            if (isNaN(pct)) pct = 0; if (pct < 0) pct = 0; if (pct > 100) pct = 100;
+            const offset = circumference - ((phase==='PUASA' ? 100-pct : pct) / 100) * circumference;
+            circle.style.strokeDashoffset = offset;
+        }
+
+        function makeDate(y, m, d, time) {
+            const [h, min] = time.split(':').map(Number);
+            return new Date(y, m - 1, d, h, min, 0);
+        }
+        function pad(n) { return n < 10 ? '0'+n : n; }
+        
+        // TARGET & QURAN
+        function loadChecklist() {
+            ['check-puasa', 'check-tarawih', 'check-tadarus', 'check-sedekah', 'check-lima-waktu'].forEach(id => {
+                const status = localStorage.getItem(id) === 'true';
+                document.getElementById(id).checked = status;
+            });
+            calculateProgress(); initQuran();
+        }
+        function updateChecklist(el) { localStorage.setItem(el.id, el.checked); if(navigator.vibrate) navigator.vibrate(30); calculateProgress(); }
+        function calculateProgress() {
+            const checks = document.querySelectorAll('.custom-checkbox input');
+            let checked = 0; checks.forEach(c => { if(c.checked) checked++; });
+            let percent = Math.round((checked / checks.length) * 100);
+            const bar = document.getElementById('dailyProgress');
+            bar.style.width = percent + '%'; bar.innerText = percent + '%';
+            if(percent === 100) { bar.style.background = "linear-gradient(90deg, #ffc800, #ffaf00)"; bar.innerText = "100%"; } 
+            else { bar.style.background = "linear-gradient(90deg, var(--primary), #00b894)"; }
+        }
+        
+        let quranState = new Array(30).fill(false); 
+        function initQuran() {
+            const saved = localStorage.getItem('quranData');
+            if (saved) quranState = JSON.parse(saved);
+            const grid = document.getElementById('quranGrid');
+            grid.innerHTML = ''; 
+            quranState.forEach((isDone, index) => {
+                const box = document.createElement('div');
+                box.className = isDone ? 'juz-box done' : 'juz-box';
+                box.innerText = index + 1;
+                box.onclick = () => toggleJuz(index);
+                grid.appendChild(box);
+            });
+            updateQuranStats();
+        }
+        function toggleJuz(index) { quranState[index] = !quranState[index]; localStorage.setItem('quranData', JSON.stringify(quranState)); if(navigator.vibrate) navigator.vibrate(30); initQuran(); }
+        function updateQuranStats() {
+            const doneCount = quranState.filter(x => x).length;
+            const percent = Math.round((doneCount / 30) * 100);
+            document.getElementById('quranCount').innerText = doneCount; document.getElementById('quranPercent').innerText = percent + '%';
+        }
+        function resetChecklist() { if(confirm("Mulai hari baru? (Quran tidak reset)")) { const checks = document.querySelectorAll('.custom-checkbox input'); checks.forEach(c => { c.checked = false; localStorage.setItem(c.id, false); }); calculateProgress(); } }
+
+        function playAdzan() { document.getElementById('adzanModal').style.display = 'flex'; document.getElementById('adzanAudio').play().catch(e => console.log("Autoplay blocked")); }
+        function stopAdzan() { document.getElementById('adzanModal').style.display = 'none'; const a = document.getElementById('adzanAudio'); a.pause(); a.currentTime = 0; }
+        function testAdzan() { playAdzan(); }
+        function hitTasbih() { tasbihCount++; document.getElementById('tasbihCounter').innerText = tasbihCount; if(navigator.vibrate) navigator.vibrate(40); }
+        function saveTasbih() { localStorage.setItem('tasbih', tasbihCount); alert('Disimpan!'); }
+        function resetTasbih() { if(confirm('Reset Tasbih?')) { tasbihCount = 0; document.getElementById('tasbihCounter').innerText = 0; localStorage.setItem('tasbih', 0); } }
+        function switchTab(id, btn) { document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active')); document.getElementById('view-'+id).classList.add('active'); document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active')); btn.classList.add('active'); }
+
+        document.getElementById('quoteText').innerText = `"${quotes[Math.floor(Math.random()*quotes.length)]}"`;
+        loadChecklist(); setInterval(runSystem, 1000); runSystem();
+    </script>
 </body>
 </html>
