@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ramadan Tracker 2026</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <audio id="adzanAudio" src="https://www.islamcan.com/audio/adhan/azan1.mp3" preload="auto"></audio>
+
+    <div class="glow-bg"></div>
+
+    <div class="app-container">
+        
+        <header class="main-header">
+            <div class="location-pill">
+                <i class="fas fa-map-marker-alt"></i> Surabaya
+            </div>
+            <h1 id="headerTitle">Ramadan 1447 H</h1>
+        </header>
+
+        <main id="view-home" class="view-section active">
+            <div class="timer-card">
+                <div class="timer-wrapper">
+                    <svg class="progress-ring" width="220" height="220">
+                        <circle class="progress-ring__bg" stroke-width="12" fill="transparent" r="100" cx="110" cy="110"/>
+                        <circle class="progress-ring__circle" id="progressCircle" stroke-width="12" fill="transparent" r="100" cx="110" cy="110"/>
+                    </svg>
+                    <div class="timer-content">
+                        <span id="timerLabel">MEMUAT</span>
+                        <div class="time-digit" id="mainTimer">--:--:--</div>
+                        <div class="target-badge" id="targetTime">Target: --:--</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="status-glass" id="statusBanner">
+                <div class="status-icon"><i class="fas fa-hourglass-half"></i></div>
+                <span id="statusText">Menunggu Waktu...</span>
+            </div>
+
+            <div class="grid-container">
+                <div class="glass-card" id="card-imsak">
+                    <div class="card-icon"><i class="fas fa-moon"></i></div>
+                    <div class="card-info">
+                        <small>Imsak</small>
+                        <strong id="time-imsak">--:--</strong>
+                    </div>
+                </div>
+                <div class="glass-card" id="card-subuh">
+                    <div class="card-icon"><i class="fas fa-cloud-sun"></i></div>
+                    <div class="card-info">
+                        <small>Subuh</small>
+                        <strong id="time-subuh">--:--</strong>
+                    </div>
+                </div>
+                <div class="glass-card full highlight" id="card-magrib">
+                    <div class="card-content-row">
+                        <div class="card-icon-lg"><i class="fas fa-utensils"></i></div>
+                        <div class="card-text-group">
+                            <small>Magrib (Berbuka)</small>
+                            <strong id="time-magrib">--:--</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mini-quote">
+                <p id="quoteText">"..."</p>
+            </div>
+            
+            <div style="height: 100px;"></div>
+        </main>
+
+        <main id="view-target" class="view-section">
+            <div class="target-wrapper">
+                <h2>Target Hari Ini</h2>
+                
+                <div class="progress-bar-container">
+                    <div class="progress-fill" id="dailyProgress" style="width: 0%">0%</div>
+                </div>
+                
+                <div class="checklist-group">
+                    <label class="custom-checkbox">
+                        <input type="checkbox" onchange="updateChecklist(this)" id="check-puasa">
+                        <span class="checkmark"><i class="fas fa-check"></i></span>
+                        <div class="label-text">
+                            <strong>Puasa Penuh</strong>
+                            <small>Fajar - Magrib</small>
+                        </div>
+                    </label>
+                    <label class="custom-checkbox">
+                        <input type="checkbox" onchange="updateChecklist(this)" id="check-tarawih">
+                        <span class="checkmark"><i class="fas fa-check"></i></span>
+                        <div class="label-text">
+                            <strong>Sholat Tarawih</strong>
+                            <small>Hidupkan malam</small>
+                        </div>
+                    </label>
+                    <label class="custom-checkbox">
+                        <input type="checkbox" onchange="updateChecklist(this)" id="check-tadarus">
+                        <span class="checkmark"><i class="fas fa-check"></i></span>
+                        <div class="label-text">
+                            <strong>Tadarus (Baca Quran)</strong>
+                            <small>Min. 1 halaman</small>
+                        </div>
+                    </label>
+                    <label class="custom-checkbox">
+                        <input type="checkbox" onchange="updateChecklist(this)" id="check-sedekah">
+                        <span class="checkmark"><i class="fas fa-check"></i></span>
+                        <div class="label-text">
+                            <strong>Sedekah</strong>
+                            <small>Berbagi rezeki</small>
+                        </div>
+                    </label>
+                    <label class="custom-checkbox">
+                        <input type="checkbox" onchange="updateChecklist(this)" id="check-lima-waktu">
+                        <span class="checkmark"><i class="fas fa-check"></i></span>
+                        <div class="label-text">
+                            <strong>Sholat 5 Waktu</strong>
+                            <small>Tepat waktu</small>
+                        </div>
+                    </label>
+                </div> 
+
+                <div class="quran-section">
+                    <h3>Tracker Khatam Quran</h3>
+                    <div class="quran-progress-text">
+                        Selesai: <span id="quranPercent">0%</span> (Juz <span id="quranCount">0</span>/30)
+                    </div>
+                    <div class="quran-grid" id="quranGrid">
+                        </div>
+                </div>
+
+                <button class="btn-reset-target" onclick="resetChecklist()">
+                    <i class="fas fa-redo"></i> Reset Hari Baru
+                </button>
+                
+                <div style="height: 100px;"></div>
+            </div>
+        </main>
+
+        <main id="view-tasbih" class="view-section">
+            <div class="tasbih-wrapper">
+                <h2>Tasbih Digital</h2>
+                <div class="count-circle">
+                    <span id="tasbihCounter">0</span>
+                </div>
+                <button class="tap-area" onclick="hitTasbih()">
+                    <i class="fas fa-fingerprint"></i> TAP
+                </button>
+                <div class="tasbih-actions">
+                    <button class="btn-glass" onclick="resetTasbih()"><i class="fas fa-undo"></i></button>
+                    <button class="btn-glass" onclick="saveTasbih()"><i class="fas fa-save"></i></button>
+                </div>
+            </div>
+        </main>
+
+        <main id="view-info" class="view-section">
+            <div class="info-list">
+                <h2>Info Aplikasi</h2>
+                <div class="glass-card full">
+                    <small>Sumber Data</small>
+                    <strong>Kemenag Jatim 2026</strong>
+                </div>
+                <div class="glass-card full">
+                    <small>Lokasi</small>
+                    <strong>Kota Surabaya</strong>
+                </div>
+                <button class="btn-action" onclick="testAdzan()">Test Audio Adzan</button>
+            </div>
+        </main>
+
+        <nav class="glass-nav">
+            <button class="nav-btn active" onclick="switchTab('home', this)">
+                <i class="fas fa-home"></i>
+            </button>
+            <button class="nav-btn" onclick="switchTab('target', this)">
+                <i class="fas fa-list-check"></i>
+            </button>
+            <button class="nav-btn" onclick="switchTab('tasbih', this)">
+                <i class="fas fa-kaaba"></i>
+            </button>
+            <button class="nav-btn" onclick="switchTab('info', this)">
+                <i class="fas fa-cog"></i>
+            </button>
+        </nav>
+
+    </div>
+
+    <div id="adzanModal" class="modal-overlay">
+        <div class="modal-box">
+            <div class="anim-ring"></div>
+            <i class="fas fa-mosque"></i>
+            <h3>WAKTU ADZAN!</h3>
+            <p>Selamat menunaikan ibadah.</p>
+            <button onclick="stopAdzan()">Matikan</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
