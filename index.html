@@ -325,9 +325,8 @@
     </div>
 
     <script>
-        // --- JAVASCRIPT GABUNGAN (UPDATE JADWAL BARU) ---
+        // --- JAVASCRIPT GABUNGAN (FIX LINGKARAN NEON HILANG) ---
         const scheduleData = [
-            // FEBRUARI (Mulai 20 Feb)
             { d: 20, m: 2, im:"04:13", su:"04:23", mg:"17:52" },
             { d: 21, m: 2, im:"04:13", su:"04:23", mg:"17:51" },
             { d: 22, m: 2, im:"04:13", su:"04:23", mg:"17:51" },
@@ -337,7 +336,6 @@
             { d: 26, m: 2, im:"04:14", su:"04:24", mg:"17:50" },
             { d: 27, m: 2, im:"04:14", su:"04:24", mg:"17:49" },
             { d: 28, m: 2, im:"04:14", su:"04:24", mg:"17:49" },
-            // MARET
             { d: 1,  m: 3, im:"04:14", su:"04:24", mg:"17:49" },
             { d: 2,  m: 3, im:"04:14", su:"04:24", mg:"17:48" },
             { d: 3,  m: 3, im:"04:14", su:"04:24", mg:"17:48" },
@@ -371,6 +369,7 @@
         const circumference = radius * 2 * Math.PI;
         circle.style.strokeDasharray = `${circumference} ${circumference}`;
         circle.style.strokeDashoffset = circumference;
+        
         let tasbihCount = localStorage.getItem('tasbih') || 0;
         document.getElementById('tasbihCounter').innerText = tasbihCount;
         let adzanPlayedToday = false; 
@@ -382,7 +381,6 @@
             let today = scheduleData.find(x => x.d === d && x.m === m);
             let isPreRamadan = false;
             
-            // Logic start tanggal 20 Feb
             if (!today && m === 2 && d < 20) { 
                 today = scheduleData[0]; 
                 isPreRamadan = true; 
@@ -407,18 +405,27 @@
             document.querySelectorAll('.glass-card').forEach(c => c.classList.remove('active'));
 
             if (isPreRamadan) {
-                target = tIm; label = "MENUJU SAHUR PERTAMA"; phase = "PRE_RAMADAN";
-                start = new Date(); end = tIm; document.getElementById('card-imsak').classList.add('active');
+                target = tIm; 
+                label = "MENUJU SAHUR PERTAMA"; 
+                phase = "PRE_RAMADAN";
+                
+                // FIX LINGKARAN HILANG: Start diset dari jam 00:00 hari ini, bukan new Date()
+                start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0); 
+                end = tIm; 
+                document.getElementById('card-imsak').classList.add('active');
             } else {
                 if (now < tIm) {
                     target = tIm; label = "MENUJU WAKTU IMSAK"; phase = "SAHUR";
-                    start = new Date(tIm); start.setHours(start.getHours() - 4); end = tIm; document.getElementById('card-imsak').classList.add('active');
+                    start = new Date(tIm); start.setHours(start.getHours() - 4); end = tIm; 
+                    document.getElementById('card-imsak').classList.add('active');
                 } else if (now < tSu) {
                     target = tSu; label = "STOP MAKAN (IMSAK)"; phase = "IMSAK";
-                    start = tIm; end = tSu; document.getElementById('card-subuh').classList.add('active');
+                    start = tIm; end = tSu; 
+                    document.getElementById('card-subuh').classList.add('active');
                 } else if (now < tMg) {
                     target = tMg; label = "MENUJU WAKTU BERBUKA"; phase = "PUASA";
-                    start = tSu; end = tMg; document.getElementById('card-magrib').classList.add('active');
+                    start = tSu; end = tMg; 
+                    document.getElementById('card-magrib').classList.add('active');
                 } else {
                     label = "SUDAH BERBUKA"; phase = "BUKA";
                     const idx = scheduleData.indexOf(today);
@@ -464,9 +471,12 @@
         }
 
         function updateProgress(now, start, end, phase) {
-            const total = end - start; const current = now - start;
+            const total = end - start; 
+            const current = now - start;
             let pct = (current / total) * 100;
-            if (isNaN(pct)) pct = 0; if (pct < 0) pct = 0; if (pct > 100) pct = 100;
+            if (isNaN(pct)) pct = 0; 
+            if (pct < 0) pct = 0; 
+            if (pct > 100) pct = 100;
             const offset = circumference - ((phase==='PUASA' ? 100-pct : pct) / 100) * circumference;
             circle.style.strokeDashoffset = offset;
         }
@@ -477,7 +487,7 @@
         }
         function pad(n) { return n < 10 ? '0'+n : n; }
         
-        // TARGET & QURAN
+        // --- TARGET & QURAN ---
         function loadChecklist() {
             ['check-puasa', 'check-tarawih', 'check-tadarus', 'check-sedekah', 'check-lima-waktu'].forEach(id => {
                 const status = localStorage.getItem(id) === 'true';
@@ -519,17 +529,24 @@
         }
         function resetChecklist() { if(confirm("Mulai hari baru? (Quran tidak reset)")) { const checks = document.querySelectorAll('.custom-checkbox input'); checks.forEach(c => { c.checked = false; localStorage.setItem(c.id, false); }); calculateProgress(); } }
 
+        // --- AUDIO & TASBIH ---
         function playAdzan() { document.getElementById('adzanModal').style.display = 'flex'; document.getElementById('adzanAudio').play().catch(e => console.log("Autoplay blocked")); }
         function stopAdzan() { document.getElementById('adzanModal').style.display = 'none'; const a = document.getElementById('adzanAudio'); a.pause(); a.currentTime = 0; }
         function testAdzan() { playAdzan(); }
         function hitTasbih() { tasbihCount++; document.getElementById('tasbihCounter').innerText = tasbihCount; if(navigator.vibrate) navigator.vibrate(40); }
         function saveTasbih() { localStorage.setItem('tasbih', tasbihCount); alert('Disimpan!'); }
         function resetTasbih() { if(confirm('Reset Tasbih?')) { tasbihCount = 0; document.getElementById('tasbihCounter').innerText = 0; localStorage.setItem('tasbih', 0); } }
+        
+        // --- NAVIGATION ---
         function switchTab(id, btn) { document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active')); document.getElementById('view-'+id).classList.add('active'); document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active')); btn.classList.add('active'); }
 
+        // --- STARTUP ---
         document.getElementById('quoteText').innerText = `"${quotes[Math.floor(Math.random()*quotes.length)]}"`;
-        loadChecklist(); setInterval(runSystem, 1000); runSystem();
+        loadChecklist(); 
+        setInterval(runSystem, 1000); 
+        runSystem();
     </script>
 </body>
 </html>
+
 
